@@ -2,18 +2,18 @@
 <manifest>
   <!-- core extension information -->
   <plugin>
-    <name value= "Talis aspire"/>
+    <name value= "Talis Aspire Reading Lists"/>
     <handle value= "aspire-bb-learn"/>
-    <description value= "This building block allows you to integrate reading lists from Talis aspire into Blackboard Learn."/>
-    <default-locale value="en_US" />
-    <version value= "1.0.7"/>
+    <description value= "This building block allows you to integrate reading lists from Talis Aspire into Blackboard Learn."/>
+    <default-locale value="en_GB" />
+    <version value= "1.0.7.2"/>
     <requires>
       <bbversion value="9.1"/>
     </requires>
     <vendor>
       <id value="tel"/>
-      <name value="Oscelot"/>
-      <url value="http://www.oscelot.org/" />
+      <name value="Talis"/>
+      <url value="http://talis.com/" />
       <description value="plugin.application.description" />
     </vendor>
     <http-actions>
@@ -22,13 +22,13 @@
     
     <!-- Tools defined by this extension -->
     <application-defs>
-      <application handle="TalisAspire" type="shared" use-ssl="false" name="Resource List" can-allow-guest="true"
-       small-icon="" large-icon="images/logo.png" is-course-tool="true" is-sys-tool="true" is-group-tool="false">
+      <application handle="TalisAspire" type="shared" use-ssl="false" name="plugin.application.course_tool.name" can-allow-guest="true"
+       small-icon="" large-icon="images/logo.png" is-course-tool="true" is-sys-tool="false" is-group-tool="false">
         <description small-icon="images/logo_s.png">plugin.application.description</description>
         <links>
           <link>
             <type value="tool"></type>
-            <name value="Resource List"></name>
+            <name value="plugin.application.course_tool.name"></name>
             <url value="coursetool.jsp"></url>
             <description value="plugin.application.course_tool.description" />
             <icons><listitem value="images/logo.gif"></listitem><toolbar value="images/logo_s.gif"></toolbar>

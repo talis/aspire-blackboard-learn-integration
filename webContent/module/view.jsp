@@ -90,11 +90,15 @@
   B2Context b2Context = new B2Context(request);
   String aspireBaseUrl = b2Context.getSetting("aspireBaseUrl");
   String targetKg = b2Context.getSetting("targetNodeType");
+  String useCourseName = b2Context.getSetting("useCourseName");
   String regex = b2Context.getSetting("regexCourseId");
+  String regexrpl = b2Context.getSetting("regexCourseIdReplacement");
   String regextp = b2Context.getSetting("regexTimePeriod");
+  String regextprpl = b2Context.getSetting("regexTimePeriodReplacement");
   String debugMode = b2Context.getSetting("debugMode");
   String helpUrl = b2Context.getSetting("helpurl");
   String sectionMode = b2Context.getSetting(true, false, "sectionMode");
+  String userLocale = user.getLocale();
   String imageUrl = "";
   int total = 0;
   String sections = "";
@@ -107,16 +111,44 @@
   boolean portal = false;
   String cache = "c";
   List<Course> cList = new ArrayList<Course>();
+  List<Course> cExtras = new ArrayList<Course>();
+  Collection<Course> cCollection = new ArrayList<Course>();
 
   // If course_id is present we are running in a course and so only need to worry about that
   // resource list
+
   String courseId = request.getParameter("course_id");
+  
   if (courseId != null) {
     cList.add(ctx.getCourse());
   } else {
     // Running as portal module, get all courses
     portal = true;
     cList = (List<Course>) CourseDbLoader.Default.getInstance().loadByUserId(user.getId());
+    
+    // check to see if any of the courses are combined courses
+   	HashSet<Id> all_courses = new HashSet();
+    for(Course cl : cList){
+      if (cl.isParent()){
+        CourseCourseDbLoader ccdbl = CourseCourseDbLoader.Default.getInstance();
+    	List<CourseCourse> c_relations = ccdbl.loadByParentId(cl.getId());
+    	
+    	for (int f=0 ; f<c_relations.size();f++){
+    	  all_courses.add(c_relations.get(f).getChildCourseId());
+   		}
+      }
+    }
+    
+    HashMap<String, Course> courseHashMap = new HashMap();
+    CourseDbLoader cdbl = CourseDbLoader.Default.getInstance();
+    for (Id ac : all_courses){
+    	Course cc = cdbl.loadById(ac);
+    	courseHashMap.put(cc.getCourseId(),cc);
+    }
+    for(Course cl : cList){
+      courseHashMap.put(cl.getCourseId(),cl);
+    }
+    cCollection = courseHashMap.values();
   }
   
   if (b2Context.getSetting("maintenance").equals("true") && Utils.maintenancePeriodNow(b2Context.getSetting("starttime"), b2Context.getSetting("endtime"))) {
@@ -130,21 +162,32 @@
 
   if (!maint) {
     // if we are running as a course module there will be a course_id on the request
-    for (Course c : cList) {
+    for (Course c : cCollection) {
   
       if (c.getEndDate() != null && c.getEndDate().before(Calendar.getInstance())) continue;
 
-      CourseMembership cm = CourseMembershipDbLoader.Default.getInstance().loadByCourseAndUserId(c.getId(), user.getId());
-      if (!cm.getIsAvailable()) continue;
-  
-      // Get the course
+      try{
+	      CourseMembership cm = CourseMembershipDbLoader.Default.getInstance().loadByCourseAndUserId(c.getId(), user.getId());
+	      if (!cm.getIsAvailable()) continue;
+      }catch(KeyNotFoundException knfe){
+      }
+      // Get the course      
       BbSessionManagerService sessionService = BbSessionManagerServiceFactory.getInstance();
       BbSession bbSession = sessionService.getSession(request); 
       String resourceList = bbSession.getGlobalKey(c.getBatchUid());
-       
+      
+      String courseIdSource = "";
+      if(useCourseName.equals("true")){
+    	courseIdSource = c.getTitle();
+   	  } else {
+   		courseIdSource = c.getCourseId();
+      }
+
+      String timePeriodSource = c.getCourseId();
+      
       TAResourceList rl = null;
       if (resourceList == null) {
-        rl = new TAResourceList(aspireBaseUrl, targetKg, regex, regextp, c.getCourseId(), sectionMode, debugMode);
+        rl = new TAResourceList(aspireBaseUrl, targetKg, regex, regexrpl, regextp, regextprpl, courseIdSource, timePeriodSource, sectionMode, debugMode);
         if (rl.getCode() == Utils.SOCKETTIMEOUT) {
           timeout = true;
           break;
@@ -158,10 +201,14 @@
       ArrayList<TAList> taLists = rl.getLists();
     
       total += taLists.size();
+      
+      out.println("<!-- User Lanaguage: " + userLocale + " -->");
+      
       if (taLists.size() > 0) {
 	
 	    out.println("<ul class='portletList-img'>");
 	    String path = PlugInUtil.getUri("tel", "aspire-bb-learn", "");
+	    //Collections.sort(taLists);
         for (TAList list : taLists) {
 
           out.println("<li>");
@@ -174,7 +221,7 @@
      
 	      if (sectionMode.equals("true") && list.getSectionItems() > 0) {
 	  
-	        out.println("<a href='" + list.getListURI() + "' target='_blank'>" + list.getListName() + "</a> (" + list.getListItems() + " " + itemText + ")");
+	        out.println("[" + list.getTargetCode() + "] <a href='" + list.getListURI(userLocale) + "' target='_blank'>" + list.getListName() + "</a> (" + list.getListItems() + " " + itemText + ")");
 	    
 	        listNo = "List" + String.valueOf(i);
 	        itemNo = "Item" + String.valueOf(i);
@@ -192,7 +239,7 @@
             <%
         
 	      } else {
-	        out.println("<a href='" + list.getListURI() + "' target='_blank'>" + list.getListName() + "</a> (" + list.getSectionItems() + " " + sectionText + ", " +  list.getListItems() + " " + itemText + ")");
+	        out.println("[" + list.getTargetCode() + "] <a href='" + list.getListURI(userLocale) + "' target='_blank'>" + list.getListName() + "</a> (" + list.getSectionItems() + " " + sectionText + ", " +  list.getListItems() + " " + itemText + ")");
 	      }
 	      out.println("</li>");
         }	
@@ -206,19 +253,24 @@
       out.println("<div class='noItems divider'>" + b2Context.getResourceString("learningpage.noserver") + "</div>");
       titleText = b2Context.getResourceString("block.language.single");
     } else if (total == 0) {
-      if (courseId == null) {
+      if (courseId == null) { // not sure if this logic is right...
         out.println("<div class='noItems divider'>" + b2Context.getResourceString("learningpage.nolists") + "</div>");
       } else {
+        
         CourseMembership.Role role = CourseMembership.Role.STUDENT;
-        CourseMembership cm = CourseMembershipDbLoader.Default.getInstance().loadByCourseAndUserId(cList.get(0).getId(), user.getId());
-        role = cm.getRole();
+        // try/catch block that deals with admins not being a member of the module (they default to student)
+        try {
+        	CourseMembership cm = CourseMembershipDbLoader.Default.getInstance().loadByCourseAndUserId(cList.get(0).getId(), user.getId());
+        	role = cm.getRole();
+        }catch (KeyNotFoundException kfne) {
+        }
         if (role == CourseMembership.Role.INSTRUCTOR ||
             role == CourseMembership.Role.COURSE_BUILDER ||
             role == CourseMembership.Role.TEACHING_ASSISTANT) {
           out.println(Utils.textForStaff(cList.get(0), b2Context));  
         } else {
           String studentMessage = b2Context.getSetting("studentMessage");
-          out.println("<div class='noItems divider'>" + String.format(studentMessage, cList.get(0).getTitle()) + "</div>");
+          out.println("<div class='noItems divider'>" + String.format(studentMessage, cList.get(0).getTitle(),cList.get(0).getCourseId()) + "</div>");
         }
       }
       titleText = b2Context.getResourceString("block.language.single");
@@ -240,6 +292,12 @@
   Long end = System.currentTimeMillis();
   String smode = sectionMode.equals("true") ? "t" : "f";
   if (portal) {
+    for(Course cl : cList){
+    	log.logInfo("View: Enrolled Course= " + cl.getCourseId() + " " + cl.getTitle());
+    }
+    for(Course ce : cExtras){
+    	log.logInfo("View: Extra Course= " + ce.getCourseId() + " " + ce.getTitle());
+    }
     log.logInfo(String.format("View: %6.3f",  (end - start)/1000.0) + "s (u: " + user.getUserName() + ", sm: " +  smode + ", c: " + cache + ")");
   } else {
     log.logInfo(String.format("Tool: %6.3f",  (end - start)/1000.0) + "s (u: " + user.getUserName() + ", sm: " +  smode + ", c: " +  cache + ")");     

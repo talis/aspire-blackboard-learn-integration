@@ -67,11 +67,14 @@
   B2Context b2Context = new B2Context(request);
   String aspireBaseUrl = b2Context.getSetting("aspireBaseUrl");
   String targetKg = b2Context.getSetting("targetNodeType");
-  String regex = b2Context.getSetting("regexCourseId");
   String debugMode = b2Context.getSetting("debugMode");
   String sectionMode = b2Context.getSetting(true, false, "sectionMode");
   String rss = b2Context.getSetting("rss");
+  String regex = b2Context.getSetting("regexCourseId");
+  String regexrpl = b2Context.getSetting("regexCourseIdReplacement");
   String regextp = b2Context.getSetting("regexTimePeriod");
+  String regextprpl = b2Context.getSetting("regexTimePeriodReplacement");
+  String useCourseName = b2Context.getSetting("useCourseName");
   int count = 0;
   boolean comma = false;
           
@@ -129,8 +132,18 @@
     // Get CourseMembership
     CourseMembership cm = CourseMembershipDbLoader.Default.getInstance().loadByCourseAndUserId(c.getId(), user.getId());
     if (!cm.getIsAvailable()) continue;
+    
+    String courseIdSource ="";
+	if (useCourseName.equals("true")){
+		courseIdSource = c.getTitle();
+	} else {
+		courseIdSource = c.getCourseId();
+	}
+	
+	String timePeriodSource = c.getCourseId();
 
-    TAResourceList rl = new TAResourceList(aspireBaseUrl, targetKg, regex, regextp, c.getCourseId(), debugMode, sectionMode);
+
+    TAResourceList rl = new TAResourceList(aspireBaseUrl, targetKg, regex, regexrpl, regextp, regextprpl, courseIdSource, timePeriodSource, debugMode, sectionMode);
     ArrayList<TAList> taLists = rl.getLists();
     
     count = 0;
