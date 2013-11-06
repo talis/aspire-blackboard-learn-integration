@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="tel-aspire-bb-learn Building Block" default="install-b2-sp12" basedir=".">
+  <description>Talis Aspire Resource List Building Block</description>
+
+  <property name="build.dir" value="${basedir}/build/"/>
+  <property name="b2.package.name" value="${basedir}/tel-aspire-bb-learn"/>
+
+  <target name="deploy-b2" depends="package-war">
+	<taskdef name="b2deploy" classpath="${basedir}/lib/b2deploy-task.jar" classname="org.oscelot.ant.B2DeployTask" />
+	<b2deploy localfilepath="${b2.package.name}.war" host="learnapp3-dev.stir.ac.uk" courseorgavailable="true" clean="false" />
+  </target>
+
+  <target name="package-war">
+	<war destfile="${b2.package.name}.war" basedir="webContent">
+	  <classes dir="bin"></classes>
+	</war>
+  </target>
+	
+  <target name="check-compatibility">
+    <taskdef name="fibbba" classname="com.blackboard.fibbba.CheckFibbbaTask" classpath="${basedir}/lib/fibbba-ant.jar" />
+    <fibbba srcfile="${b2.package.name}.war" email="s.p.booth@stir.ac.uk"/>
+  </target>
+
+  <target name="install-b2-sp10" depends="package-war">
+    <exec executable="java.exe">
+	  <arg value="-jar" />
+	  <arg value="c:/blackboard/installb2/InstallB2.jar" />
+	  <arg value="http://localhost:81/" />
+	  <arg value="${b2.package.name}.war" />
+	  <arg value="BBLEARN" />
+	  <arg value="false" />   <!-- remove old version before installing? -->
+	  <arg value="true" />   <!-- make block available by default? -->
+	  <arg value="7ad955e6-0bc7-488b-ad5b-660fdd9c416d" />
+	</exec>
+  </target>
+	
+  <target name="install-b2-sp12" depends="package-war">
+	<exec executable="java.exe">
+	  <arg value="-jar" />
+	  <arg value="c:/blackboard/installb2/InstallB2.jar" />
+	  <arg value="http://localhost:83/" />
+	  <arg value="${b2.package.name}.war" />
+	  <arg value="BBLEARN" />
+	  <arg value="false" />   <!-- remove old version before installing? -->
+	  <arg value="true" />   <!-- make block available by default? -->
+	  <arg value="61ade17f-d0cb-4286-8f10-b4abe3814841" />
+	</exec>
+  </target>
+	
+  <taskdef name="checkFibbba" classname="com.blackboard.fibbba.CheckFibbbaTask" classpath="${basedir}/lib/antTask.jar" />
+
+  <target name="checkFibbba">
+	<checkFibbba srcfile="${b2.package.name}.war" email="s.p.booth@stir.ac.uk"/>
+  </target>
+
+</project>

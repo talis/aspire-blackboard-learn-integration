@@ -1,0 +1,12 @@
+JarIndex-Version: 1.0
+
+aspire-bb-learn-integration.war
+WEB-INF
+WEB-INF/classes
+WEB-INF/classes/org
+WEB-INF/classes/org/json
+WEB-INF/lib
+module
+admin.jsp
+error.jsp
+
