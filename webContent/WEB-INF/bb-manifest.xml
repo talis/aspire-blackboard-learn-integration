@@ -63,6 +63,6 @@
       <permission type="persist" name="Content" actions="create,modify,delete"/>
       <permission type="attribute" name="user.authinfo" actions="get,set"/>
       <permission type="attribute" name="user.personalinfo" actions="get,set"/>
-    <permission type="java.io.FilePermission" name="/-" actions="read,write,delete"></permission></permissions>
+    <permission type="java.io.FilePermission" name="/-" actions="read,write,delete"></permission><permission type="java.lang.RuntimePermission" name="setContextClassLoader"></permission></permissions>
   </plugin>
 </manifest>
