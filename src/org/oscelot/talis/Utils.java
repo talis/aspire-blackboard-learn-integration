@@ -84,7 +84,7 @@ public class Utils {
   public static String textForStaff (Course c, B2Context b2Context) {
 
     String staffMessage = b2Context.getSetting("staffMessage");
-    String message = "<div class='noItems divider'>" + String.format(staffMessage, c.getTitle()) + "</div>";
+    String message = "<div class='noItems divider'>" + String.format(staffMessage, c.getTitle(), c.getCourseId()) + "</div>";
     // Check if email link(s) are wanted
     if (b2Context.getSetting("emailMode").equals("true")) {
       // Check if we some email addresses to use

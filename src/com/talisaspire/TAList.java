@@ -3,7 +3,7 @@ package com.talisaspire;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TAList implements java.io.Serializable {
+public class TAList implements java.io.Serializable, Comparable<TAList> {
   /**
    * 
    */
@@ -15,7 +15,16 @@ public class TAList implements java.io.Serializable {
   String listLastUpdated = "";
   String description = "";
   List<Section> sections = new ArrayList<Section>();
+  String targetCode = "";
   
+  public String getTargetCode() {
+    return targetCode;
+  }
+
+  public void setTargetCode(String targetCode) {
+    this.targetCode = targetCode;
+  }
+
   public TAList() {
   }
   
@@ -25,6 +34,15 @@ public class TAList implements java.io.Serializable {
   
   public String getListURI() {
     return this.listURI;
+  }
+  
+  public String getListURI(String lang) {
+    // add locale specific flag 
+    if(lang != null ){
+      return this.listURI + "?lang=" + lang.substring(0, 2);
+    }else{
+      return this.listURI;
+    }
   }
   
   public void setListName(String listName) {
@@ -79,4 +97,10 @@ public class TAList implements java.io.Serializable {
   public List<Section> getSections() {
     return this.sections;
   }
+
+  @Override
+  public int compareTo(TAList other) {
+    return getTargetCode().compareTo(other.getTargetCode());
+  }
+  
 }

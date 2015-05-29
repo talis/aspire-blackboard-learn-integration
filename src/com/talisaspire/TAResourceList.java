@@ -9,6 +9,9 @@ import org.json.simple.parser.ParseException;
 import org.joda.time.format.ISODateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.oscelot.talis.Utils;
+
+import blackboard.platform.log.Log;
+
 import com.ocpsoft.pretty.time.PrettyTime;
 
 public class TAResourceList  implements java.io.Serializable {
@@ -18,25 +21,38 @@ public class TAResourceList  implements java.io.Serializable {
   String aspireBaseUrl = "";
   String targetKg = "";
   String regex = "";
+  String regexrpl = "";
+  String regextprpl = "";
   String regextp ="";
   String targetCode = "";
+  String targetTimePeriod = "";
   String aspireLink = "";
   int code = 0;
   ArrayList<TAList> taLists = new ArrayList<TAList>();
+  Log log = Utils.getLogger("talis");
   
-  public TAResourceList(String aspireBaseUrl, String targetKg, String regex, String regextp, String courseId, String sectionMode, String debugMode) throws IOException, ParseException {
+  public TAResourceList(String aspireBaseUrl, String targetKg, String regex, String regexrpl, String regextp, String regextprpl, String courseIdSource, String timePeriodSource, String sectionMode, String debugMode) throws IOException, ParseException {
     this.aspireBaseUrl = aspireBaseUrl;
     this.targetKg = targetKg;
     this.regex = regex;
+    this.regexrpl = regexrpl;
+    this.regextp = regextp;
+    this.regextprpl = regextprpl;
+    this.taLists = new ArrayList<TAList>();
     
     if (regex != null && !regex.equals("")) {
-      this.targetCode = courseId.replaceAll(regex, "");
+      this.targetCode = courseIdSource.replaceAll(this.regex, this.regexrpl);
     } else {
-      this.targetCode = courseId;
+      this.targetCode = courseIdSource;
+    }
+    if (regextp != null && !regex.equals("")) {
+    	this.targetTimePeriod = timePeriodSource.replaceAll(this.regextp,this.regextprpl);
+    } else {
+    	this.targetTimePeriod = timePeriodSource;
     }
     
     this.aspireLink = aspireBaseUrl + "/" + targetKg.toLowerCase() + "/" + this.targetCode.toLowerCase() + "/lists";
-    
+    this.log.logInfo("TAResourceList: this.aspireLink " + this.aspireLink);
     JSONObject jsonRoot = Utils.getJSON(this.aspireLink);
     this.code = Utils.code;
     if  (this.code  >= 200 && this.code <  300 ) {
@@ -56,6 +72,7 @@ public class TAResourceList  implements java.io.Serializable {
         JSONObject jsonListEntry = iter.next();
         String listURI = (String)jsonListEntry.get("value");
         taList.setListURI(listURI);
+        taList.setTargetCode(this.getTargetCode());
         JSONObject jsonList = (JSONObject)jsonRoot.get(listURI);
         
         // Deal with time periods
@@ -64,12 +81,12 @@ public class TAResourceList  implements java.io.Serializable {
           JSONObject jsonTimePeriodRoot = Utils.getJSON(timePeriodListURI);
           if (Utils.code == 404) {
             blackboard.platform.log.Log log = Utils.getLogger("talis");
-            log.logDebug("No TP: " + courseId + " " + timePeriodListURI);
+            log.logDebug("No TP: " + timePeriodSource + " " + timePeriodListURI);
           }
           JSONObject jsonTimePeriodSlug = (JSONObject) jsonTimePeriodRoot.get(timePeriodListURI);
           String slug = (String)((JSONObject)((JSONArray)jsonTimePeriodSlug.get("http://lists.talis.com/schema/temp#slug")).get(0)).get("value");
           if (regextp != null && !regextp.equals("")) {
-            if (!slug.equals(courseId.replaceAll(regextp, "").toLowerCase())) continue;
+            if (!slug.equals(this.targetTimePeriod.toLowerCase())) continue;
           }
           
         } catch (NullPointerException npe) {};
@@ -171,6 +188,10 @@ public class TAResourceList  implements java.io.Serializable {
   
   public String getTargetCode() {
     return this.targetCode;
+  }
+  
+  public String getTargetTimePeriod() {
+	  return this.targetTimePeriod;
   }
   
   public String getAspireLink() {

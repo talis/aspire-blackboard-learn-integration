@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="tel-aspire-bb-learn Building Block" default="install-b2-sp12" basedir=".">
+<project name="tel-aspire-bb-learn Building Block" default="deploy-b2" basedir=".">
   <description>Talis Aspire Resource List Building Block</description>
 
   <property name="build.dir" value="${basedir}/build/"/>
@@ -7,7 +7,7 @@
 
   <target name="deploy-b2" depends="package-war">
 	<taskdef name="b2deploy" classpath="${basedir}/lib/b2deploy-task.jar" classname="org.oscelot.ant.B2DeployTask" />
-	<b2deploy localfilepath="${b2.package.name}.war" host="learnapp3-dev.stir.ac.uk" courseorgavailable="true" clean="false" />
+	<b2deploy localfilepath="${b2.package.name}.war" host="192.168.10.68:9876" courseorgavailable="true" clean="true" />
   </target>
 
   <target name="package-war">
@@ -18,7 +18,7 @@
 	
   <target name="check-compatibility">
     <taskdef name="fibbba" classname="com.blackboard.fibbba.CheckFibbbaTask" classpath="${basedir}/lib/fibbba-ant.jar" />
-    <fibbba srcfile="${b2.package.name}.war" email="s.p.booth@stir.ac.uk"/>
+    <fibbba srcfile="${b2.package.name}.war" email="tgh@talis.com"/>
   </target>
 
   <target name="install-b2-sp10" depends="package-war">
@@ -50,7 +50,7 @@
   <taskdef name="checkFibbba" classname="com.blackboard.fibbba.CheckFibbbaTask" classpath="${basedir}/lib/antTask.jar" />
 
   <target name="checkFibbba">
-	<checkFibbba srcfile="${b2.package.name}.war" email="s.p.booth@stir.ac.uk"/>
+	<checkFibbba srcfile="${b2.package.name}.war" email="tgh@talis.com"/>
   </target>
 
 </project>

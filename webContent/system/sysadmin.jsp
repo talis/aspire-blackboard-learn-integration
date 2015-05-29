@@ -1,6 +1,8 @@
 <%--
-    Talis - Building Block to provide support for Talis aspire
+    Talis - Building Block to provide support for Talis Aspire
     Copyright (C) 2013  Simon P Booth and Talis Education Limited
+    
+    This version specifically modified for University of Bangor by Talis Ltd.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,7 +18,7 @@
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-    Contact: s.p.booth@stir.ac.uk
+    Contact: s.p.booth@stir.ac.uk, tgh@talis.com
 
     Version history:
       1.0.0 11-Feb-13 Initial release
@@ -81,7 +83,10 @@
   String BASE_URL = "aspireBaseUrl";
   String TARGET = "targetNodeType";
   String REGEX = "regexCourseId";
+  String REGEXRPL = "regexCourseIdReplacement";
+  String USECOURSENAME = "useCourseName";
   String REGEXTP = "regexTimePeriod";
+  String REGEXTPRPL = "regexTimePeriodReplacement";
   String DEBUG = "debugMode";
   String STUDMSG = "studentMessage";
   String STAFFMSG = "staffMessage";
@@ -111,12 +116,21 @@
     
     String targetKg = b2Context.getRequestParameter(TARGET, "Courses").trim();
     b2Context.setSetting(TARGET, targetKg);
+
+    String useCourseName = b2Context.getRequestParameter(USECOURSENAME, "").trim();
+    b2Context.setSetting(USECOURSENAME, useCourseName);
     
     String regexCourseId = b2Context.getRequestParameter(REGEX, "").trim();
     b2Context.setSetting(REGEX, regexCourseId);
-
+    
+    String regexCourseIdReplacement = b2Context.getRequestParameter(REGEXRPL, "").trim();
+    b2Context.setSetting(REGEXRPL, regexCourseIdReplacement);
+    
     String regexTimePeriod = b2Context.getRequestParameter(REGEXTP, "").trim();
     b2Context.setSetting(REGEXTP, regexTimePeriod);
+    
+    String regexTimePeriodReplacement = b2Context.getRequestParameter(REGEXTPRPL, "").trim();
+    b2Context.setSetting(REGEXTPRPL, regexTimePeriodReplacement);
     
     String staffMessage = b2Context.getRequestParameter(STAFFMSG, "").trim();
     b2Context.setSetting(STAFFMSG, staffMessage);
@@ -212,6 +226,13 @@
 	    </bbNG:dataElement>
 	  </bbNG:step>
 	  
+	  <bbNG:step title="${bundle['page.system.step.usecoursename.title']}" id="debug"
+	             instructions="${bundle['page.system.step.usecoursename.instructions']}">
+	    <bbNG:dataElement isRequired="false" label="${bundle['page.system.step.usecoursename.label']}">
+	      <input id="useCourseName" type="checkbox" name="<%=USECOURSENAME %>" value="true" <% if (b2Context.getSetting(USECOURSENAME).equals("true")) { out.print("checked=\"checked\"");} %>/>
+	    </bbNG:dataElement>
+	  </bbNG:step>
+	  
 	  <bbNG:step title="${bundle['page.system.step.regex.title']}" id="regex" 
 	             instructions="${bundle['page.system.step.regex.instructions']}">
 	    <bbNG:dataElement isRequired="false" label="${bundle['page.system.step.regex.label']}">
@@ -219,13 +240,27 @@
 	    </bbNG:dataElement>
 	  </bbNG:step>
 	  
+	  <bbNG:step title="${bundle['page.system.step.regexrpl.title']}" id="regexrpl" 
+	             instructions="${bundle['page.system.step.regexrpl.instructions']}">
+	    <bbNG:dataElement isRequired="false" label="${bundle['page.system.step.regexrpl.label']}">
+	      <input type="text" name="<%=REGEXRPL %>" value="<%=b2Context.getSetting(REGEXRPL)%>"/>
+	    </bbNG:dataElement>
+	  </bbNG:step>
+
 	  <bbNG:step title="${bundle['page.system.step.regextp.title']}" id="regextp" 
 	             instructions="${bundle['page.system.step.regextp.instructions']}">
 	    <bbNG:dataElement isRequired="false" label="${bundle['page.system.step.regextp.label']}">
 	      <input type="text" name="<%=REGEXTP %>" value="<%=b2Context.getSetting(REGEXTP)%>"/>
 	    </bbNG:dataElement>
+	  </bbNG:step>  
+	  
+	  <bbNG:step title="${bundle['page.system.step.regextprpl.title']}" id="regextprpl" 
+	             instructions="${bundle['page.system.step.regextprpl.instructions']}">
+	    <bbNG:dataElement isRequired="false" label="${bundle['page.system.step.regextprpl.label']}">
+	      <input type="text" name="<%=REGEXTPRPL %>" value="<%=b2Context.getSetting(REGEXTPRPL)%>"/>
+	    </bbNG:dataElement>
 	  </bbNG:step>
-
+	  	  
 	  <bbNG:step title="${bundle['page.system.step.staffmsg.title']}" id="staffmsg" 
 	             instructions="${bundle['page.system.step.staffmsg.instructions']}">
 	    <bbNG:dataElement isRequired="true" label="${bundle['page.system.step.staffmsg.label']}">
