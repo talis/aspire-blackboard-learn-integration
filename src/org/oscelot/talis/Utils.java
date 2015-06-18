@@ -55,24 +55,53 @@ public class Utils {
   }
   
   public static JSONObject getJSON (String URI) {
-
+    
+    Log log = Utils.getLogger("talis");
+    String baseLogMessage = "Utils.getJson: ";
+    
     try {
       JSONObject jsonRoot = null;
       URL u = new URL(URI + ".json"); 
       HttpURLConnection huc =  (HttpURLConnection) u.openConnection();
       huc.setRequestMethod ("GET");
-      huc.setConnectTimeout(5000); //set timeout to 5 seconds
+      huc.setConnectTimeout(10000); //set timeout to 10 seconds
       huc.connect();
       Utils.code = huc.getResponseCode(); 
+      log.logDebug(baseLogMessage + "Respnse Code: " + Utils.code);
+      
+      if(Utils.code == HttpURLConnection.HTTP_MOVED_PERM 
+          || Utils.code == HttpURLConnection.HTTP_MOVED_TEMP 
+          || Utils.code == HttpURLConnection.HTTP_SEE_OTHER){
+        
+        // get redirect url from "location" header field
+        String newUrl = huc.getHeaderField("Location");
+        log.logDebug(baseLogMessage + "Redirecting to: " + newUrl.toString());
+     
+        // get the cookie if need, for login
+        String cookies = huc.getHeaderField("Set-Cookie");
+     
+        // open the new connection again
+        huc = (HttpURLConnection) new URL(newUrl).openConnection();
+        huc.setRequestProperty("Cookie", cookies);
+        
+        huc.connect();
+        Utils.code = huc.getResponseCode(); 
+        log.logDebug(baseLogMessage + "Respnse Code: " + Utils.code);
+   
+      }
+        
       if (Utils.code == HttpURLConnection.HTTP_OK) {
         InputStreamReader in = new InputStreamReader((InputStream) huc.getContent());
         jsonRoot = (JSONObject)new JSONParser().parse(in);
+        log.logDebug(baseLogMessage + "Respone json: " + jsonRoot.toJSONString());
       }
+      
       huc.disconnect();
       return jsonRoot;
     }
     catch (SocketTimeoutException ste) {
       Utils.code = Utils.SOCKETTIMEOUT;
+      log.logDebug(baseLogMessage + "Got a timeout");
     }
     catch (MalformedURLException mu) {}
     catch (IOException ioe) {}

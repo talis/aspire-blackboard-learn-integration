@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="blackboard.eclipse.plugin.CLASSPATH_CONTAINER/9.1.90132.0"/>
+	<classpathentry kind="con" path="blackboard.eclipse.plugin.CLASSPATH_CONTAINER/9.1.110082.0"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="webContent/WEB-INF/lib/joda-time-1.6.2.jar"/>
 	<classpathentry kind="lib" path="webContent/WEB-INF/lib/ocpsoft-pretty-time-1.0.7.jar"/>
