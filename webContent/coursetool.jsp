@@ -122,7 +122,7 @@
 		  all_courses.add(course.getId());
 	  }
 	  
-	  log.logInfo("CourseTool: all_courses " + Arrays.toString(all_courses.toArray()));
+	  log.logDebug("CourseTool: all_courses " + Arrays.toString(all_courses.toArray()));
 
 	  // get our session ready
 	  BbSessionManagerService sessionService = BbSessionManagerServiceFactory.getInstance();
@@ -154,7 +154,7 @@
 		        CourseDbLoader cdbl = CourseDbLoader.Default.getInstance();
 		        Course c = cdbl.loadById(ac);
 		        String resourceList = bbSession.getGlobalKey(c.getBatchUid());
-		        log.logInfo("CourseTool: ac= " + ac);
+		        log.logDebug("CourseTool: ac= " + ac);
 		        TAResourceList rl = null;
 		        ArrayList<TAList> taLists = new ArrayList<TAList>();
 		    	  
@@ -174,6 +174,7 @@
 		              regextp, regextprpl, courseIdSource, timePeriodSource,
 		              sectionMode, debugMode);
 		          if (rl.getCode() == Utils.SOCKETTIMEOUT) {
+		            log.logInfo("Timeout for URL: " + rl.getAspireLink());
 		            timeout = true;
 		          } else {
 		            cache = "n";
@@ -250,7 +251,7 @@
 		              + "</td><td>" + Arrays.toString(all_courses.toArray())
 		              + "</td></tr>";
 		          tail = "<tr><td>"
-		              + b2Context.getResourceString("learningpage.debug.code")
+		              + "HTTP Response Code"
 		              + "</td><td>" + rl.getCode() + "</td></tr></table>";
 		          text.add(0, message);
 		        } 
