@@ -67,7 +67,7 @@ public class Utils {
       huc.setConnectTimeout(10000); //set timeout to 10 seconds
       huc.connect();
       Utils.code = huc.getResponseCode();
-      log.logDebug(baseLogMessage + "Respnse Code: " + Utils.code);
+      log.logDebug(baseLogMessage + "Response Code: " + Utils.code);
 
       if(Utils.code == HttpURLConnection.HTTP_MOVED_PERM
           || Utils.code == HttpURLConnection.HTTP_MOVED_TEMP
@@ -90,14 +90,13 @@ public class Utils {
 
         huc.connect();
         Utils.code = huc.getResponseCode();
-        log.logDebug(baseLogMessage + "Respnse Code: " + Utils.code);
-
+        log.logDebug(baseLogMessage + "Response Code: " + Utils.code);
       }
 
       if (Utils.code == HttpURLConnection.HTTP_OK) {
         InputStreamReader in = new InputStreamReader((InputStream) huc.getContent());
         jsonRoot = (JSONObject)new JSONParser().parse(in);
-        log.logDebug(baseLogMessage + "Respone json: " + jsonRoot.toJSONString());
+        log.logDebug(baseLogMessage + "Response json: " + jsonRoot.toJSONString());
       }
 
       huc.disconnect();
