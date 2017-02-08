@@ -39,9 +39,9 @@ import blackboard.platform.log.LogServiceFactory;
 public class Utils {
   public static int code;
   public final static int SOCKETTIMEOUT = -1;
-  
+
   public static String sectionHTML (List<Section> sections) {
-    
+
     String sectionHTML = "";
     if (sections.size() == 0) return sectionHTML;
 
@@ -50,66 +50,85 @@ public class Utils {
     }
 
     sectionHTML = sectionHTML.substring(0, sectionHTML.length() - 6);
-    
+
     return sectionHTML;
   }
-  
+
   public static JSONObject getJSON (String URI) {
-    
+
     Log log = Utils.getLogger("talis");
     String baseLogMessage = "Utils.getJson: ";
-    
+
     try {
       JSONObject jsonRoot = null;
-      URL u = new URL(URI + ".json"); 
+      URL u = new URL(URI + ".json");
       HttpURLConnection huc =  (HttpURLConnection) u.openConnection();
       huc.setRequestMethod ("GET");
       huc.setConnectTimeout(10000); //set timeout to 10 seconds
       huc.connect();
-      Utils.code = huc.getResponseCode(); 
-      log.logDebug(baseLogMessage + "Respnse Code: " + Utils.code);
-      
-      if(Utils.code == HttpURLConnection.HTTP_MOVED_PERM 
-          || Utils.code == HttpURLConnection.HTTP_MOVED_TEMP 
+      Utils.code = huc.getResponseCode();
+      log.logDebug(baseLogMessage + "Response Code: " + Utils.code);
+
+      if(Utils.code == HttpURLConnection.HTTP_MOVED_PERM
+          || Utils.code == HttpURLConnection.HTTP_MOVED_TEMP
           || Utils.code == HttpURLConnection.HTTP_SEE_OTHER){
-        
+
         // get redirect url from "location" header field
         String newUrl = huc.getHeaderField("Location");
         log.logDebug(baseLogMessage + "Redirecting to: " + newUrl.toString());
-     
+
         // get the cookie if need, for login
         String cookies = huc.getHeaderField("Set-Cookie");
-     
-        // open the new connection again
+
+        // close the first connection
+        huc.disconnect();
+
+        // open the new connection
         huc = (HttpURLConnection) new URL(newUrl).openConnection();
+        huc.setConnectTimeout(10000); //set timeout to 10 seconds
         huc.setRequestProperty("Cookie", cookies);
-        
+
         huc.connect();
-        Utils.code = huc.getResponseCode(); 
-        log.logDebug(baseLogMessage + "Respnse Code: " + Utils.code);
-   
+        Utils.code = huc.getResponseCode();
+        log.logDebug(baseLogMessage + "Response Code: " + Utils.code);
       }
-        
+
       if (Utils.code == HttpURLConnection.HTTP_OK) {
         InputStreamReader in = new InputStreamReader((InputStream) huc.getContent());
         jsonRoot = (JSONObject)new JSONParser().parse(in);
-        log.logDebug(baseLogMessage + "Respone json: " + jsonRoot.toJSONString());
+        log.logDebug(baseLogMessage + "Response json: " + jsonRoot.toJSONString());
       }
-      
+
       huc.disconnect();
       return jsonRoot;
     }
     catch (SocketTimeoutException ste) {
       Utils.code = Utils.SOCKETTIMEOUT;
-      log.logDebug(baseLogMessage + "Got a timeout");
+      log.logError(baseLogMessage + "Got a timeout", ste);
     }
-    catch (MalformedURLException mu) {}
-    catch (IOException ioe) {}
-    catch (ParseException pe) {}
+    catch (MalformedURLException mu) {
+        log.logError(baseLogMessage + "malformed Url", mu);
+    }
+    catch (IOException ioe) {
+        log.logError(baseLogMessage + "IO Exception", ioe);
+    }
+    catch (ParseException pe) {
+        log.logError(baseLogMessage + "ParseException", pe);
+    }
+    finally () {
+        if (huc != null) {
+            try {
+                huc.disconnect();
+            }
+            catch (Exception e) {
+                log.logError(baseLogMessage + "Tried to tidy up the http connection", e);
+            }
+        }
+    }
 
     return null;
   }
-  
+
   public static String textForStaff (Course c, B2Context b2Context) {
 
     String staffMessage = b2Context.getSetting("staffMessage");
@@ -120,67 +139,67 @@ public class Utils {
       BbCategoryEmail bbcg;
       try {
         bbcg = new BbCategoryEmail(c, b2Context);
-  
+
         String email = bbcg.getEmails(b2Context.getSetting("separator"));
         if (!email.equals("")) {
           String rawEmailMessage = b2Context.getSetting("emailMsg");
           if (!rawEmailMessage.equals("")) {
             String[] emailText = rawEmailMessage.split("_");
-            message += "<div class='noItems divider'>" + emailText[0] + "<a href='mailto:" + email + "'>" + emailText[1] + "</a>" + emailText[2] + "</div>";  
+            message += "<div class='noItems divider'>" + emailText[0] + "<a href='mailto:" + email + "'>" + emailText[1] + "</a>" + emailText[2] + "</div>";
           }
         }
-      } 
-      catch (KeyNotFoundException e) {} 
+      }
+      catch (KeyNotFoundException e) {}
       catch (PersistenceException e) {}
     }
     return message;
   }
-  
+
   public static boolean maintenancePeriodNow (String startTime, String endTime) {
     boolean maintenance = false;
     Calendar start = blackboard.servlet.util.DatePickerUtil.pickerDatetimeStrToCal(startTime);
     Calendar end = blackboard.servlet.util.DatePickerUtil.pickerDatetimeStrToCal(endTime);
     Calendar now = Calendar.getInstance();
-    
+
     try {
       if (now.after(start) && now.before(end)) maintenance = true;
     } catch (NullPointerException npe) {};
-    
+
     return maintenance;
   }
-  
+
   public static boolean maintenancePeriodFuture(String startTime) {
     boolean inFuture = false;
     Calendar start = blackboard.servlet.util.DatePickerUtil.pickerDatetimeStrToCal(startTime);
     Calendar now = Calendar.getInstance();
-    
+
     try {
       if (start.after(now)) inFuture = true;
     } catch (NullPointerException npe) {};
-    
+
     return inFuture;
   }
-  
+
   public static String endTimeHHMM (String endTime) {
     String endTimeFormatted = "";
     Calendar end = blackboard.servlet.util.DatePickerUtil.pickerDatetimeStrToCal(endTime);
-    
+
     SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
     endTimeFormatted = formatter.format(end.getTime());
-    
+
     return endTimeFormatted;
   }
-  
+
   public static String endTimeDMYHHMM (String endTime) {
     String endTimeFormatted = "";
     Calendar end = blackboard.servlet.util.DatePickerUtil.pickerDatetimeStrToCal(endTime);
-    
+
     SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy:HH:mm");
     endTimeFormatted = formatter.format(end.getTime());
-    
+
     return endTimeFormatted;
   }
-  
+
   public static void setSessionKey(TAResourceList rl, String name, BbSession bbSession) {
     try {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -194,28 +213,28 @@ public class Utils {
     } catch (IOException e) {}
       catch (PersistenceException pe) {}
   }
-  
+
   public static TAResourceList getObjectFromString (String resourceList) {
     try {
       byte [] data = Base64.decodeBase64(resourceList);
       ObjectInputStream ois = new java.io.ObjectInputStream(new java.io.ByteArrayInputStream(data));
       Object o  = ois.readObject();
       ois.close();
-  
+
       TAResourceList rl = (TAResourceList) o;
-    
+
       return rl;
     } catch (IOException e) {}
       catch (ClassNotFoundException cnf) {}
 
     return null;
   }
-  
+
   public static Log getLogger(String name) {
     // Set up log
     LogService logService = LogServiceFactory.getInstance();
     Log log = logService.getConfiguredLog(name);
-    
+
     if (log == null) {
       try {
         logService = LogServiceFactory.getInstance();
@@ -228,7 +247,7 @@ public class Utils {
     } else {
       log.setVerbosityLevel(LogService.Verbosity.DEBUG);
     }
-    
+
     return log;
   }
 }
