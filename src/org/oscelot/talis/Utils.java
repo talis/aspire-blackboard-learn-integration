@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import org.apache.commons.codec.binary.Base64;
 
 import java.net.HttpURLConnection;
+import javax.net.ssl.HttpsURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -58,11 +59,11 @@ public class Utils {
 
     Log log = Utils.getLogger("talis");
     String baseLogMessage = "Utils.getJson: ";
-
+    HttpsURLConnection huc = null; 
     try {
       JSONObject jsonRoot = null;
       URL u = new URL(URI + ".json");
-      HttpURLConnection huc =  (HttpURLConnection) u.openConnection();
+      huc = (HttpsURLConnection) u.openConnection();
       huc.setRequestMethod ("GET");
       huc.setConnectTimeout(10000); //set timeout to 10 seconds
       huc.connect();
@@ -84,7 +85,7 @@ public class Utils {
         huc.disconnect();
 
         // open the new connection
-        huc = (HttpURLConnection) new URL(newUrl).openConnection();
+        huc = (HttpsURLConnection) new URL(newUrl).openConnection();
         huc.setConnectTimeout(10000); //set timeout to 10 seconds
         huc.setRequestProperty("Cookie", cookies);
 
@@ -97,6 +98,12 @@ public class Utils {
         InputStreamReader in = new InputStreamReader((InputStream) huc.getContent());
         jsonRoot = (JSONObject)new JSONParser().parse(in);
         log.logDebug(baseLogMessage + "Response json: " + jsonRoot.toJSONString());
+      } else {
+        if (huc instanceof HttpsURLConnection) {
+          HttpsURLConnection secured = (HttpsURLConnection) huc;
+          String cipher = secured.getCipherSuite();
+          log.logDebug(baseLogMessage + "cipher: "  + cipher);
+        }
       }
 
       huc.disconnect();
@@ -115,7 +122,7 @@ public class Utils {
     catch (ParseException pe) {
         log.logError(baseLogMessage + "ParseException", pe);
     }
-    finally () {
+    finally {
         if (huc != null) {
             try {
                 huc.disconnect();

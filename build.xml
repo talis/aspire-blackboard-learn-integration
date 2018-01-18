@@ -4,6 +4,10 @@
 
   <property name="build.dir" value="${basedir}/build/"/>
   <property name="b2.package.name" value="${basedir}/tel-aspire-bb-learn"/>
+	
+  <tstamp>
+  	<format property="TODAY_MY" pattern="yyyyMMdd-HHmmss"  locale="en,UK" />
+  </tstamp>
 
   <target name="deploy-b2" depends="package-war">
 	<taskdef name="b2deploy" classpath="${basedir}/lib/b2deploy-task.jar" classname="org.oscelot.ant.B2DeployTask" />
@@ -11,7 +15,7 @@
   </target>
 
   <target name="package-war">
-	<war destfile="${b2.package.name}.war" basedir="webContent">
+	<war destfile="${b2.package.name}-${TODAY_MY}.war" basedir="webContent">
 	  <classes dir="bin"></classes>
 	</war>
   </target>
