@@ -59,11 +59,12 @@ public class Utils {
 
     Log log = Utils.getLogger("talis");
     String baseLogMessage = "Utils.getJson: ";
-    HttpsURLConnection huc = null; 
+    HttpURLConnection huc = null; 
     try {
       JSONObject jsonRoot = null;
       URL u = new URL(URI + ".json");
-      huc = (HttpsURLConnection) u.openConnection();
+      log.logInfo("Getting JSON from: " + u.toString());
+      huc = (HttpURLConnection) u.openConnection();
       huc.setRequestMethod ("GET");
       huc.setConnectTimeout(10000); //set timeout to 10 seconds
       huc.connect();
@@ -84,7 +85,7 @@ public class Utils {
         // close the first connection
         huc.disconnect();
 
-        // open the new connection
+        // open the new connection (which will be HTTPS)
         huc = (HttpsURLConnection) new URL(newUrl).openConnection();
         huc.setConnectTimeout(10000); //set timeout to 10 seconds
         huc.setRequestProperty("Cookie", cookies);
@@ -128,7 +129,8 @@ public class Utils {
                 huc.disconnect();
             }
             catch (Exception e) {
-                log.logError(baseLogMessage + "Tried to tidy up the http connection", e);
+                log.logError(baseLogMessage + "Tried to "
+                    + "tidy up the http connection", e);
             }
         }
     }
@@ -245,14 +247,14 @@ public class Utils {
     if (log == null) {
       try {
         logService = LogServiceFactory.getInstance();
-        logService.defineNewFileLog(name, "logs" + java.io.File.separator + name + ".log", LogService.Verbosity.DEBUG, false);
+        logService.defineNewFileLog(name, "logs" + java.io.File.separator + name + ".log", LogService.Verbosity.INFORMATION, false);
         log = logService.getConfiguredLog(name);
         log.logInfo("Talis ASPIRE Logging");
       } catch (BbServiceException e) {
         log = null;
       }
     } else {
-      log.setVerbosityLevel(LogService.Verbosity.DEBUG);
+      log.setVerbosityLevel(LogService.Verbosity.INFORMATION);
     }
 
     return log;
