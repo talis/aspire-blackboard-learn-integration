@@ -60,8 +60,9 @@
 	  String cache = "c";
       
       Log log = Utils.getLogger("talis");
-	  
-          // Default role --- used when admins try the link and aren't enroled in the module
+	  log.logDebug("Initialised Log in CourseTool");
+    		  
+      // Default role --- used when admins try the link and aren't enroled in the module
 	  CourseMembership.Role role = CourseMembership.Role.STUDENT;
 	  Course course = ctx.getCourse();
 	  String path = PlugInUtil.getUri("tel", "aspire-bb-learn", "");
@@ -150,38 +151,46 @@
 		<%
 		  // for each course
 		      for (Id ac : all_courses) {
-		        // show the course
+		        
+		        	
+		    	// show the course
 		        CourseDbLoader cdbl = CourseDbLoader.Default.getInstance();
 		        Course c = cdbl.loadById(ac);
 		        String resourceList = bbSession.getGlobalKey(c.getBatchUid());
 		        log.logDebug("CourseTool: ac= " + ac);
 		        TAResourceList rl = null;
 		        ArrayList<TAList> taLists = new ArrayList<TAList>();
-		    	  
-		        // load a resource list from session or from Talis Aspire
-		        if (resourceList == null) {
-		          
-		          String courseIdSource = "";
-		          if (useCourseName.equals("true")) {
-		            courseIdSource = c.getTitle();
-		          } else {
-		            courseIdSource = c.getCourseId();
-		          }
-		          
-		          String timePeriodSource = c.getCourseId();
-		          
-		          rl = new TAResourceList(aspireBaseUrl, targetKg, regex, regexrpl,
-		              regextp, regextprpl, courseIdSource, timePeriodSource,
-		              sectionMode, debugMode);
-		          if (rl.getCode() == Utils.SOCKETTIMEOUT) {
-		            log.logInfo("Timeout for URL: " + rl.getAspireLink());
-		            timeout = true;
-		          } else {
-		            cache = "n";
-		            Utils.setSessionKey(rl, c.getBatchUid(), bbSession);
-		          }
-		        } else {
-		          rl = Utils.getObjectFromString(resourceList);
+		    	
+		        try{
+			        // load a resource list from session or from Talis Aspire
+			        if (resourceList == null) {
+			          
+			          String courseIdSource = "";
+			          if (useCourseName.equals("true")) {
+			            courseIdSource = c.getTitle();
+			          } else {
+			            courseIdSource = c.getCourseId();
+			          }
+			          
+			          String timePeriodSource = c.getCourseId();
+			          
+			          rl = new TAResourceList(aspireBaseUrl, targetKg, regex, regexrpl,
+			              regextp, regextprpl, courseIdSource, timePeriodSource,
+			              sectionMode, debugMode);
+			          if (rl.getCode() == Utils.SOCKETTIMEOUT) {
+			            log.logInfo("Timeout for URL: " + rl.getAspireLink());
+			            timeout = true;
+			          } else {
+			            cache = "n";
+			            Utils.setSessionKey(rl, c.getBatchUid(), bbSession);
+			          }
+			        } else {
+			          rl = Utils.getObjectFromString(resourceList);
+			        }
+		        
+		        }
+		        catch(Exception e) {
+		        	log.logDebug("problems!: ", e);
 		        }
 		        
 		        // display the resource list
